@@ -1,0 +1,5 @@
+{
+  "name": "EstateAI - Professional Property Assistant",
+  "description": "Your AI-powered property dealer for finding the perfect home, apartment, or commercial space.",
+  "requestFramePermissions": ["microphone"]
+}
