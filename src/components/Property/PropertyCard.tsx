@@ -22,11 +22,18 @@ export const PropertyCard: React.FC<PropertyCardProps> = ({ property, className,
           className="w-full h-full object-cover transition-transform hover:scale-105 duration-500"
           referrerPolicy="no-referrer"
         />
+        <div className="absolute top-3 left-3 flex gap-2">
+          {property.price === 0 && (
+            <div className="bg-emerald-600 px-2 py-1 rounded-lg text-[10px] font-black text-white shadow-lg animate-bounce">
+              FREE
+            </div>
+          )}
+        </div>
         <div className="absolute top-3 right-3 bg-white/90 backdrop-blur-sm px-2 py-1 rounded-lg text-xs font-semibold text-slate-700 shadow-sm">
           {property.type.charAt(0).toUpperCase() + property.type.slice(1)}
         </div>
         <div className="absolute bottom-3 left-3 bg-blue-600 px-3 py-1 rounded-lg text-sm font-bold text-white shadow-lg">
-          {property.price} Lakh
+          {property.price === 0 ? "FREE" : `${property.price} Lakh`}
         </div>
       </div>
       

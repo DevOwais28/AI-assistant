@@ -1,8 +1,21 @@
 import { GoogleGenAI, Type, FunctionDeclaration } from "@google/genai";
-import { mockProperties } from "../data/mockProperties";
+import knowledgeBase from "../data/knowledge_base.json";
+import assistantConfig from "../data/assistant_config.json";
 import { Property } from "../types/property";
 
-const apiKey = process.env.GEMINI_API_KEY || "";
+const getApiKey = () => {
+  if (typeof process !== 'undefined' && process.env?.GEMINI_API_KEY) {
+    return process.env.GEMINI_API_KEY;
+  }
+  // Vite define replacement
+  try {
+    return (process.env as any).GEMINI_API_KEY || "";
+  } catch {
+    return "";
+  }
+};
+
+const apiKey = getApiKey();
 const ai = new GoogleGenAI({ apiKey });
 
 const searchPropertiesFunction: FunctionDeclaration = {
@@ -22,8 +35,9 @@ const searchPropertiesFunction: FunctionDeclaration = {
 
 export const searchProperties = (args: any): Property[] => {
   const { city, area, type, maxPrice, minBedrooms } = args;
+  const properties = knowledgeBase.properties as Property[];
   
-  return mockProperties.filter(p => {
+  return properties.filter(p => {
     if (city && p.location.city.toLowerCase() !== city.toLowerCase()) return false;
     if (area && !p.location.area.toLowerCase().includes(area.toLowerCase())) return false;
     if (type && p.type !== type) return false;
@@ -34,20 +48,10 @@ export const searchProperties = (args: any): Property[] => {
 };
 
 export const getGeminiResponse = async (messages: { role: string; content: string }[]) => {
-  const model = "gemini-3-flash-preview";
+  const model = "gemini-3.1-flash-lite-preview";
   
-  const systemInstruction = `You are a professional property dealer AI assistant named EstateAI. Your job is to help users find properties based on their requirements. 
-
-Rules:
-1. Always answer politely and clearly.
-2. If a property is available, give full details (location, type, price, bedrooms, availability, and any special features).
-3. If no property matches the request, suggest alternatives nearby or similar types from the available data.
-4. Use a friendly tone, like a helpful human agent.
-5. Always confirm interest: "Would you like me to show more options in [area]?"
-6. If asked about your services, respond: "I help clients find the best properties and give complete details about availability, price, and location."
-7. Use the searchProperties tool to find real properties from our database. Do NOT make up properties that are not in the database.
-8. If the user asks for something not in the database, tell them you don't have it but suggest the closest match.
-9. Format your responses with Markdown for better readability.`;
+  const config = assistantConfig.assistant;
+  const systemInstruction = `${config.system_instructions}\n\nRules:\n${config.rules.join('\n')}\n\nKnowledge Base Context: Use the searchProperties tool to access real-time property data from our database.`;
 
   const contents = messages.map(m => ({
     role: m.role === 'user' ? 'user' : 'model',
